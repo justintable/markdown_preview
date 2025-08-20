@@ -1,0 +1,22 @@
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.log
+*.tmp
+
+# Node 模块（如果将来添加）
+node_modules/
+
+# Python 虚拟环境（如果将来添加）
+venv/
+env/
+__pycache__/
+*.pyc

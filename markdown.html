@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown 实时预览工具</title>
+    <style>
+        /* --- 页面整体布局 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        /* --- 头部标题 --- */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* --- 主内容区，左右分栏 --- */
+        .container {
+            display: flex;
+            flex-wrap: wrap; /* 在小屏幕上换行 */
+            padding: 20px;
+            gap: 20px;
+            height: calc(100vh - 80px); /* 占据屏幕剩余高度 */
+        }
+
+        /* --- 编辑区和预览区共享样式 --- */
+        .panel {
+            flex: 1; /* 均分空间 */
+            min-width: 300px; /* 最小宽度，防止过度挤压 */
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden; /* 防止内容溢出圆角 */
+        }
+
+        .panel h2 {
+            margin: 0;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            background-color: #ecf0f1;
+            border-bottom: 1px solid #dcdfe2;
+            color: #2c3e50;
+        }
+        
+        /* --- 输入框样式 --- */
+        #markdown-input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            padding: 20px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: none; /* 禁止用户手动调整大小 */
+            color: #222;
+        }
+
+        /* --- 预览区样式 --- */
+        #html-output {
+            flex-grow: 1;
+            padding: 20px;
+            line-height: 1.7;
+            overflow-y: auto; /* 内容过多时显示滚动条 */
+        }
+
+        /* --- 预览区内元素的精细化样式 --- */
+        #html-output h1, #html-output h2, #html-output h3 { border-bottom: 1px solid #eee; padding-bottom: 0.3em; margin-top: 24px; }
+        #html-output code { background-color: #eef; padding: 2px 5px; border-radius: 4px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; }
+        #html-output pre { background-color: #eef; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        #html-output blockquote { border-left: 4px solid #ccc; padding-left: 15px; color: #666; margin-left: 0; }
+        #html-output table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        #html-output th, #html-output td { border: 1px solid #dfe2e5; padding: 10px 12px; }
+        #html-output th { background-color: #f6f8fa; font-weight: bold; }
+        #html-output img { max-width: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Markdown 实时预览工具</h1>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h2>输入 Markdown 原始内容</h2>
+            <textarea id="markdown-input">
+### 欢迎使用 Markdown 实时预览！
+
+这是一个 **加粗** 的文本, 这是一个 *斜体* 的文本。
+
+---
+
+#### 表格示例
+
+| Component               | Specification                                                                                                |
+|-------------------------|--------------------------------------------------------------------------------------------------------------|
+| Life Boat/Rescue Boat   | 2 × F.P.R fire-protected enclosed type (water-cooled diesel), 89P each. One (1) life boat doubles as rescue boat. |
+| Life Raft (使用 &lt;br&gt;) | 4 × Inflatable throw-overboard type (45P).<br>1 × Inflatable type (6P)                                         |
+
+#### 列表
+
+*   这是一个无序列表项
+*   这是另一个列表项
+    1.  这是一个有序的子列表
+    2.  子列表的第二项
+
+#### 换行处理 (GFM 模式)
+
+在下方，我只使用了一个回车换行。
+因为开启了 `breaks` 选项，它会被渲染成一个换行符。
+
+#### 代码块
+
+```javascript
+function greet() {
+  console.log("Hello, Markdown!");
+}
+
+
+</textarea>
+</div>
+<div class="panel">
+    <h2>正常 Markdown 格式预览</h2>
+    <div id="html-output"></div>
+</div>
+</div>
+
+<!-- 1. 引入 Marked.js 用于将 Markdown 转换为 HTML -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- 2. 引入 DOMPurify 用于净化 HTML，防止 XSS 攻击 (非常重要!) -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+<!-- 3. 我们自己的脚本 -->
+<script>
+// 配置 Marked.js
+// gfm: true 启用 GitHub Flavored Markdown (更兼容表格、删除线等)
+// breaks: true 将单个换行符 (\n) 渲染为 <br> 标签
+marked.setOptions({
+    gfm: true,
+    breaks: true,
+    pedantic: false, // 容忍一些不规范的语法
+});
+
+// 获取输入和输出的 DOM 元素
+const markdownInput = document.getElementById('markdown-input');
+const htmlOutput = document.getElementById('html-output');
+
+// 定义一个函数来转换和渲染 Markdown
+function renderMarkdown() {
+    // 1. 获取 textarea 中的 Markdown 文本
+    const markdownText = markdownInput.value;
+
+    // 2. 使用 Marked.js 将 Markdown 转换为 HTML
+    const dirtyHtml = marked.parse(markdownText);
+
+    // 3. (安全第一!) 使用 DOMPurify 净化生成的 HTML
+    const cleanHtml = DOMPurify.sanitize(dirtyHtml);
+
+    // 4. 将净化后的、安全的 HTML 放入预览区域
+    htmlOutput.innerHTML = cleanHtml;
+}
+
+// 首次加载时，立即渲染一次
+renderMarkdown();
+
+// 监听 textarea 的输入事件，实现实时预览
+markdownInput.addEventListener('input', renderMarkdown);
+</script>
+</body>
+</html>
