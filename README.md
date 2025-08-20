@@ -2,6 +2,10 @@
 
 一个简单但功能强大的 Markdown 预览工具，特别支持 `\n` 转义字符的自动处理。
 
+## 在线预览
+
+访问 [https://justintable.github.io/markdown_preview](https://justintable.github.io/markdown_preview) 即可在线使用本工具。
+
 ## 特性
 
 - 实时预览 Markdown 内容
@@ -13,9 +17,10 @@
 
 ## 使用方法
 
-1. 直接在浏览器中打开 `markdown_preview2.html` 文件
-2. 在左侧输入框中输入或粘贴包含 `\n` 的 Markdown 文本
-3. 右侧会实时显示渲染后的效果
+1. 在线使用：直接访问 [在线预览地址](https://justintable.github.io/markdown_preview)
+2. 本地使用：下载 `index.html` 文件并在浏览器中打开
+3. 在左侧输入框中输入或粘贴包含 `\n` 的 Markdown 文本
+4. 右侧会实时显示渲染后的效果
 
 ## 示例
 
@@ -48,6 +53,15 @@
 - Firefox
 - Safari
 - Edge
+
+## 本地开发
+
+1. 克隆仓库：
+```bash
+git clone https://github.com/justintable/markdown_preview.git
+```
+
+2. 打开 index.html 文件即可开始使用或开发
 
 ## 许可证
 
